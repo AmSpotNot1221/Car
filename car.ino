@@ -9,7 +9,6 @@
 #define SERVO_CENTER 90
 #define MAX_STEER_DEFLECTION 4.0 
 
-// Value try karna ese hi kuch bhi randomly dala hai abhi to maine
 #define THROTTLE_STOP 1000       
 #define THROTTLE_MAX 2000        
 #define DECEL_ RATE 15     
@@ -29,7 +28,7 @@ int targetThrottle = THROTTLE_STOP;
 unsigned long lastPacketTime = 0;
 unsigned long lastRampTime = 0;
 
-void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
+void OnDataRecv(const esp_now_recv_info *info, const uint8_t *incomingData, int len) {
   memcpy(&joyData, incomingData, sizeof(joyData));
   lastPacketTime = millis();
 }
@@ -73,7 +72,7 @@ void loop() {
       targetThrottle = THROTTLE_STOP;
     }
 
-    float steerOffset = map(rxData.x, 0, 4095, -MAX_STEER_DEFLECTION, MAX_STEER_DEFLECTION);
+    float steerOffset = map(joyData.x, 0, 4095, -MAX_STEER_DEFLECTION, MAX_STEER_DEFLECTION);
     steeringServo.write(SERVO_CENTER + steerOffset);
 
   } else {
@@ -88,7 +87,7 @@ void loop() {
     if (targetThrottle > currentThrottle) {
       currentThrottle = targetThrottle; 
     } else if (targetThrottle < currentThrottle) {
-      currentThrottle -= DECELERATION_STEP;
+      currentThrottle -= DECEL_RATE;
       if (currentThrottle < targetThrottle) {
         currentThrottle = targetThrottle;
       }
